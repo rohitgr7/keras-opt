@@ -5,14 +5,14 @@ import numpy as np
 
 
 class CyclicLRScheduler(Callback):
-    def __init__(self, start_lr=1e-3, end_lr=6e-3, step_size=1000., decay=None, gamma=1.):
+    def __init__(self, start_lr=1e-3, end_lr=6e-3, step_size=2000, decay=None, gamma=1.):
         self.start_lr = start_lr
         self.end_lr = end_lr
         self.step_size = step_size
         self.decay = decay
         self.gamma = gamma
         self.history = {}
-        self.iterations = 0
+        self.iterations = 0.
 
     def on_train_begin(self, _):
         K.set_value(self.model.optimizer.lr, self.cal_lr())
@@ -33,7 +33,7 @@ class CyclicLRScheduler(Callback):
         if self.decay == 'fixed':
             new_lr /= (2. ** (cycle - 1))
         elif self.decay == 'exp':
-            new_lr *= self.gamma ** self.iterations
+            new_lr *= (self.gamma ** self.iterations)
 
         return new_lr
 
