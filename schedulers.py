@@ -5,7 +5,9 @@ import numpy as np
 
 
 class CyclicLRScheduler(Callback):
-    def __init__(self, start_lr=1e-3, end_lr=6e-3, step_size=2000, decay=None, gamma=1.):
+
+    def __init__(self, start_lr=1e-3, end_lr=6e-3, step_size=2000, decay=None,
+                 gamma=1.):
         self.start_lr = start_lr
         self.end_lr = end_lr
         self.step_size = step_size
@@ -19,7 +21,8 @@ class CyclicLRScheduler(Callback):
 
     def on_batch_end(self, _, logs={}):
         self.iterations += 1
-        self.history.setdefault('lrs', []).append(K.get_value(self.model.optimizer.lr))
+        self.history.setdefault('lrs', []).append(
+            K.get_value(self.model.optimizer.lr))
         K.set_value(self.model.optimizer.lr, self.cal_lr())
 
         for k, v in logs.items():
@@ -28,7 +31,8 @@ class CyclicLRScheduler(Callback):
     def cal_lr(self):
         cycle = np.floor(1 + self.iterations / (2 * self.step_size))
         x = np.abs((self.iterations / self.step_size) - (2 * cycle) + 1)
-        new_lr = self.start_lr + (self.end_lr - self.start_lr) * np.maximum(0, 1 - x)
+        new_lr = self.start_lr + \
+            (self.end_lr - self.start_lr) * np.maximum(0, 1 - x)
 
         if self.decay == 'fixed':
             new_lr /= (2. ** (cycle - 1))
@@ -44,7 +48,9 @@ class CyclicLRScheduler(Callback):
 
 
 class SGDRScheduler(Callback):
-    def __init__(self, start_lr=1e2, end_lr=1e-2, lr_decay=1., cycle_len=1, cycle_mult=1, steps_per_epoch=10):
+
+    def __init__(self, start_lr=1e2, end_lr=1e-2, lr_decay=1., cycle_len=1,
+                 cycle_mult=1, steps_per_epoch=10):
         self.start_lr = start_lr
         self.end_lr = end_lr
         self.lr_decay = lr_decay
@@ -59,7 +65,8 @@ class SGDRScheduler(Callback):
 
     def on_batch_end(self, _, logs={}):
         self.batch_cycle += 1
-        self.history.setdefault('lrs', []).append(K.get_value(self.model.optimizer.lr))
+        self.history.setdefault('lrs', []).append(
+            K.get_value(self.model.optimizer.lr))
         K.set_value(self.model.optimizer.lr, self.cal_lr())
 
         for k, v in logs.items():
@@ -82,11 +89,13 @@ class SGDRScheduler(Callback):
         plt.ylabel('Learning rate')
 
 
-def fit_cycle(model, X_train, y_train, validation_data=None, batch_size=64, epochs=1, cycle_len=1, cycle_mult=1, lr_sched=None, callbacks=None):
+def fit_cycle(model, X_train, y_train, valid_data=None, b_size=64, n_cycles=1,
+              cycle_len=1, cycle_mult=1, lr_sched=None, callbacks=None):
     cb_list = []
     cb_list = cb_list + [lr_sched] if lr_sched is not None else cb_list
     cb_list = cb_list + callbacks if callbacks is not None else cb_list
 
-    for _ in range(epochs):
-        model.fit(X_train, y_train, epochs=cycle_len, batch_size=batch_size, validation_data=validation_data, callbacks=cb_list)
+    for _ in range(n_cycles):
+        model.fit(X_train, y_train, epochs=cycle_len, batch_size=b_size,
+                  validation_data=valid_data, callbacks=cb_list)
         cycle_len *= cycle_mult
