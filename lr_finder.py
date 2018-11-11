@@ -1,5 +1,5 @@
-from tensorflow.keras.callbacks import LambdaCallback
-from tensorflow.keras import backend as K
+from keras.callbacks import LambdaCallback
+from keras import backend as K
 import matplotlib.pyplot as plt
 import math
 
@@ -12,7 +12,7 @@ class LRFinder:
         self.losses = []
         self.best_loss = 1e9
 
-    def on_batch_end(self, batch, logs=None):
+    def on_batch_end(self, _, logs=None):
         # Get and store the learning rate
         lr = K.get_value(self.model.optimizer.lr)
         curr_loss = logs['loss']
@@ -32,7 +32,7 @@ class LRFinder:
         lr *= self.lr_multi
         K.set_value(self.model.optimizer.lr, lr)
 
-    def find(self, X, y, batch_size=32, epochs=100, start_lr=1e-3, end_lr=10):
+    def find(self, X, y, batch_size=32, epochs=100, start_lr=1e-3, end_lr=1e1):
         # batches and lr_multiplier
         nb = X.shape[0] // batch_size
         self.lr_multi = (float(end_lr) / start_lr) ** (1. / nb)

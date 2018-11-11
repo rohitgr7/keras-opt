@@ -1,5 +1,5 @@
-from tensorflow.keras.callbacks import Callback
-from tensorflow.keras import backend as K
+from keras.callbacks import Callback
+from keras import backend as K
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -57,11 +57,11 @@ class SGDRScheduler(Callback):
         self.cycle_len = cycle_len
         self.cycle_mult = cycle_mult
         self.steps_per_epoch = steps_per_epoch
-        self.batch_cycle = 0
         self.history = {}
 
     def on_train_begin(self, _):
         K.set_value(self.model.optimizer.lr, self.start_lr)
+        self.batch_cycle = 0.
 
     def on_batch_end(self, _, logs={}):
         self.batch_cycle += 1
@@ -73,7 +73,6 @@ class SGDRScheduler(Callback):
             self.history.setdefault(k, []).append(v)
 
     def on_train_end(self, _):
-        self.batch_cycle = 0
         self.cycle_len = np.ceil(self.cycle_len * self.cycle_mult)
         self.start_lr *= self.lr_decay
 
